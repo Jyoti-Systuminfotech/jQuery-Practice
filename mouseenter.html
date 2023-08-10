@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        $(document).ready(function () {
+            $("h1").mouseenter(function(){
+                $("div").text("Mouse entered on h1").show().fadeOut(3000);
+            });
+            $("h1").mouseleave(function(){
+                $("div").text("Mouse leave on h1").show().fadeOut(3000);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1 id="h1">Heading tag</h1>
+    <div></div>
+</body>
+</html>

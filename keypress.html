@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script> 
+    <title>Document</title>
+    <script>
+        i=0
+        $(document).ready(function () {
+            $("input").keypress(function(){
+                $("span").text(i+=1);
+            });
+        });
+    </script>
+</head>
+<body>
+    Write something : <input type="text">
+    <p><span>0</span></p>
+</body>
+</html>
