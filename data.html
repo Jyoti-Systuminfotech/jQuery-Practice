@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"> </script>
+    <style>
+        div {
+            padding: 10px;
+            background-color: lightblue;
+            font-size: 25px;
+            width: 350px;
+        }
+    </style>
+</head>
+
+<body>
+    <h4> This is an example of using the jQuery data() method. </h4>
+    <div> This is a div element. </div>
+    <p> Click the following buttons to see the effect. </p>
+    <button id="b1"> Attach data </button>
+    <button id="b2"> Get data </button>
+    <script>
+        $("document").ready(function () {
+            $("#b1").click(function () {
+                $("div").data("name", "Welcome to the javaTpoint.com");
+                alert("Data attached");
+            })
+            $("#b2").click(function () {
+                alert($("div").data("name"));
+                $("div").text($("div").data("name"));
+            })
+        });  
+    </script>
+</body>
+
+</html>
