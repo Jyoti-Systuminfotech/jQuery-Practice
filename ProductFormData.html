@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Product Edit Delete</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-6">
+                <h3>Data from API</h3>
+            </div>
+        </div>
+        <hr>
+
+        <form class="modal" id="myModalEdit" enctype="multipart/form-data">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Edit Product</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><b>Product Name</b></p>
+                        <input type="text" class="form-control" id="inputName"
+                            placeholder="Enter Product Name"><br/>
+                        <p><b>Product Description</b></p>
+                        <input type="text" class="form-control" id="inputDescription"
+                            placeholder="Enter Description Name">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="showNotification('Product Edited Successfully','success')">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-bordered" id="dataTable">
+            <thead id="tabHead">
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Desc</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tabData">
+
+            </tbody>
+        </table>
+        <div class="text-center">
+            <button id="nxtPage" type="button" currPage="1" class="btn btn-primary">Load More...</button>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+        integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script scr="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+        <script>
+            function loadData() {
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/products",
+                success: function (response) {
+                    if (response.status == "success") {
+                        var data = response.data;
+                        var tabData = '';
+
+                        for (var i = 0; i < data.length; i++) {
+                            tabData += '<tr>';
+                            tabData += '<td>' + data[i].id + '</td>';
+                            tabData += '<td>' + data[i].name + '</td>';
+                            if (data[i].image != '') {
+                                tabData += '<td><img src="' + data[i].image + '" height="200px" width="200px"></td>';
+                            }
+                            else {
+                                tabData += '<td>No Image Found</td>';
+                            }
+                            tabData += '<td>' + data[i].description + '</td>';
+                            tabData += '<td>' + data[i].created_at + '</td>';
+                            tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
+                            tabData += '</tr>';
+                        }
+                        $('#tabData').html(tabData);
+                        var pagination = response.pagination;
+                    } else {
+                        console.error(response.message);
+                    }
+                }
+            });            
+        }
+        $(document).ready(function () {
+            new DataTable('#dataTable');
+            loadData();
+            $(document).on('click', '#nxtPage', function () {
+                $('#tabData').html('');
+                var pageNo = $(this).attr('currPage');
+                pageNo = parseInt(pageNo) + 1;
+                console.log(pageNo);
+                $.ajax({
+                    type: "GET",
+                    url: "https://sandbox.pranavdev.space/gadgets/api/products/",
+                    data: { page: pageNo },
+                    success: function (response) {
+                        $('#nxtPage').attr('currPage', pageNo);
+
+                        if (response.status == "success") {
+                            var data = response.data;
+                            for (var i = 0; i < data.length; i++) {
+                                tabData += '<tr>';
+                            tabData += '<td>' + data[i].id + '</td>';
+                            tabData += '<td>' + data[i].name + '</td>';
+                            if (data[i].image != '') {
+                                tabData += '<td><img src="' + data[i].image + '" height="200px" width="200px"></td>';
+                            }
+                            else {
+                                tabData += '<td>No Image Found</td>';
+                            }
+                            tabData += '<td>' + data[i].description + '</td>';
+                            tabData += '<td>' + data[i].created_at + '</td>';
+                            tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
+                            tabData += '</tr>';
+                            }
+
+                            $('#tabData').html(tabData);
+
+                            var pagination = response.pagination;
+                        }else{
+                            $('#tabData').html(response.message);
+                        }
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function () {
+            loadData();
+
+            $(document).on('click', '.edit-btn', function () {
+                var procuctId = $(this).data('id');
+                var productName = $(this).closest('tr').find('td:nth-child(2)').text();
+                var productDescription = $(this).closest('tr').find('td:nth-child(4)').text();
+
+                $('#inputName').val(productName);
+                $('#inputDescription').val(productDescription);
+                $('#myModalEdit').modal('show');
+
+                $('#myModalEdit .btn-primary').off('click').on('click', function () {
+                    var editedProductName = $('#inputName').val();
+                    var editedDescription = $('#inputDescription').val();
+                    var formData = new FormData($('#myModalEdit')[0]); 
+
+                    formData.append('product_id', procuctId);
+                    formData.set('name', editedProductName);
+                    formData.set('description', editedDescription);
+
+                    $.ajax({
+                        type: "POST",
+                        enctype: 'multipart/form-data',
+                        url: "https://sandbox.pranavdev.space/gadgets/api/edit-product",
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        success: function (response) {
+                            if (response.status === "success") {
+                                $('#myModalEdit').modal('hide');
+                                loadData();
+                            } else {
+                                console.log(response.message);
+                            }
+                        }
+                    });
+                });
+            });
+            $(document).on('click', '.delete-btn', function () {
+                var productId = $(this).data('id');
+
+                $.ajax({
+                    type: "POST",
+                    url: "https://sandbox.pranavdev.space/gadgets/api/delete-product",
+                    data: { product_id: productId },
+                    success: function (response) {
+                        if (response.status == "success") {
+                            loadData();
+                            showNotification("Product Deleted","error")
+                            
+                        } else {
+                            console.log(response.message);
+                        }
+                    }
+                });
+            });
+        });      
+        </script>
+
+        <script>
+            const notyf = new Notyf({
+           duration: 3000,
+           position: {
+               x: 'center',
+               y: 'top',
+           },
+           types: [
+               {
+               type: 'info',
+               background: 'blue',
+               icon:false
+               }
+           ]
+           
+       });
+       function showNotification(message, type) {
+           switch (type) {
+               case 'success':
+                   notyf.success(message);
+                   break;
+               case 'error':
+                   notyf.error(message);
+                   break;
+               default:
+                   break;
+           }
+       }
+       </script>
+
+</body>
+
+</html>
