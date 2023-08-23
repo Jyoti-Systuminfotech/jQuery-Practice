@@ -9,6 +9,7 @@
         integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 </head>
 
 <body>
@@ -31,8 +32,12 @@
                         <p><b>Name</b></p>
                         <input type="text" class="form-control" id="inputName" placeholder="Enter Product Name"><br />
                         <p><b>Description</b></p>
+                        <textarea class="form-control" id="inputDescription" placeholder="Enter Description"></textarea><br />
+                        
+                        <!-- <p><b>Description</b></p>
                         <input type="text" class="form-control" id="inputDescription"
-                            placeholder="Enter Description Name"><br />
+                            placeholder="Enter Description Name"><br /> -->
+
                         <p><b>Category</b></p>
                         <input type="text" class="form-control" id="inputCategory"
                             placeholder="Enter Category Name"><br />
@@ -54,8 +59,9 @@
                     <th>Id</th>
                     <th>Name</th>
                     <th>Image</th>
-                    <th>Desc</th>
+                    <th>Description</th>
                     <th>Date</th>
+                    <th>Status</th>
                     <th>Category</th>
                     <th>Affiliate URL</th>
                     <th>Actions</th>
@@ -74,8 +80,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
         crossorigin="anonymous"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/jquery.tinymce.min.js" referrerpolicy="origin"></script>
 
     <!-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script scr="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script> -->
@@ -89,10 +99,12 @@
                     if (response.status == "success") {
                         var data = response.data;
                         var tabData = '';
-
+                        var counter = 1
                         for (var i = 0; i < data.length; i++) {
                             tabData += '<tr>';
-                            tabData += '<td>' + data[i].id + '</td>';
+                            // tabData += '<td>' + data[i].id + '</td>';
+                            // Serial number  (replace data[i].id with counter)
+                            tabData += '<td>' + counter + '</td>';
                             tabData += '<td>' + data[i].name + '</td>';
                             if (data[i].image != '') {
                                 tabData += '<td><img src="' + data[i].image + '" height="200px" width="200px"></td>';
@@ -102,11 +114,23 @@
                             }
                             tabData += '<td>' + data[i].description + '</td>';
                             tabData += '<td>' + data[i].created_at + '</td>';
+                            // tabData += '<td>' + data[i].status+ '</td>';
+                            var statusBadge;
+                            if (data[i].status == 1) {
+                                statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
+                            } else if (data[i].status == 0) {
+                                statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
+                            }
+
+                            tabData += '<td>' + statusBadge + '</td>';
+
                             tabData += '<td>' + data[i].category + '</td>';
                             tabData += '<td>' + data[i].affiliate_url + '</td>';
                             tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
                             tabData += '</tr>';
+                            counter++;
                         }
+
                         $('#tabData').html(tabData);
                         var pagination = response.pagination;
                     } else {
@@ -145,6 +169,14 @@
                                 }
                                 tabData += '<td>' + data[i].description + '</td>';
                                 tabData += '<td>' + data[i].created_at + '</td>';
+                                var statusBadge;
+                                if (data[i].status == 1) {
+                                    statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
+                                } else if (data[i].status == 0) {
+                                    statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
+                                }
+
+                                tabData += '<td>' + statusBadge + '</td>';
                                 tabData += '<td>' + data[i].category + '</td>';
                                 tabData += '<td>' + data[i].affiliate_url + '</td>';
                                 tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
@@ -154,6 +186,11 @@
                             $('#tabData').html(tabData);
 
                             var pagination = response.pagination;
+                            if (pagination.total_pages == pageNo) {
+                                console.log(pagination.total_pages)
+                                showNotification("No Product Found", "error")
+                                $('#nxtPage').hide();
+                            }
                         } else {
                             // $('#tabData').html(response.message);
                             showNotification(response.message, "error")
@@ -174,14 +211,16 @@
                 var productAffiliate = $(this).closest('tr').find('td:nth-child(7)').text();
 
                 $('#inputName').val(productName);
-                $('#inputDescription').val(productDescription);
+                // $('#inputDescription').val(productDescription);
+                tinymce.get('inputDescription').setContent(productDescription);
                 $('#inputCategory').val(productCategory);
                 $('#inputAffiliate').val(productAffiliate);
                 $('#myModalEdit').modal('show');
 
                 $('#myModalEdit .btn-primary').off('click').on('click', function () {
                     var editedProductName = $('#inputName').val();
-                    var editedDescription = $('#inputDescription').val();
+                    // var editedDescription = $('#inputDescription').val();
+                    var editedDescription = tinymce.get('inputDescription').getContent();
                     var editedCategory = $('#inputCategory').val();
                     var editedAffiliate = $('#inputAffiliate').val();
                     var formData = new FormData($('#myModalEdit')[0]);
@@ -271,6 +310,21 @@
 
         });      
     </script>
+        <script>
+            tinymce.init({
+                selector: '#inputDescription',
+                height: 300, 
+                plugins: [
+                    'advlist autolink lists link image charmap print preview anchor',
+                    'searchreplace visualblocks code fullscreen',
+                    'insertdatetime media table paste code help wordcount'
+                ],
+                toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                          alignleft aligncenter alignright alignjustify | \
+                          bullist numlist outdent indent | removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+            });
+        </script>
 
     <script>
         const notyf = new Notyf({
