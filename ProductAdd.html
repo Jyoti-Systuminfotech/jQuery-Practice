@@ -17,9 +17,40 @@
         <div class="row">
             <div class="col-lg-6">
                 <h3>Data from API</h3>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">+Add Category</button>
             </div>
         </div>
         <hr>
+        <form class="modal" id="myModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Products</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><b>Name</b></p>
+                        <input type="text" class="form-control" id="productName" placeholder="Enter Product Name">
+                        <p><b>Images</b></p>
+                        <input type="file" id="productImg" name="productImg" accept="image/*">
+                        <p><b>Description</b></p>
+                        <textarea class="form-control" id="productDescription"
+                            placeholder="Enter Product Description"></textarea>
+                        <p><b>Category</b></p>
+                        <!-- <input type="text" class="form-control" id="productCategory"
+                            placeholder="Enter Product Category"> -->
+                        <select class="form-select" id="category">
+                            <option value="0">Un Categorized</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="addProductBtn">+ Add</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
 
         <form class="modal" id="myModalEdit" enctype="multipart/form-data">
             <div class="modal-dialog">
@@ -32,17 +63,13 @@
                         <p><b>Name</b></p>
                         <input type="text" class="form-control" id="inputName" placeholder="Enter Product Name"><br />
                         <p><b>Description</b></p>
-                        <textarea class="form-control" id="inputDescription" placeholder="Enter Description"></textarea><br />
-                        
-                        <!-- <p><b>Description</b></p>
-                        <input type="text" class="form-control" id="inputDescription"
-                            placeholder="Enter Description Name"><br /> -->
+                        <textarea class="form-control" id="inputDescription"
+                            placeholder="Enter Description"></textarea><br />
 
                         <p><b>Category</b></p>
                         <input type="text" class="form-control" id="inputCategory"
                             placeholder="Enter Category Name"><br />
-                        <p><b>Affiliate URL</b></p>
-                        <input type="text" class="form-control" id="inputAffiliate" placeholder="Enter Affiliate URL">
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
@@ -61,9 +88,7 @@
                     <th>Image</th>
                     <th>Description</th>
                     <th>Date</th>
-                    <th>Status</th>
                     <th>Category</th>
-                    <th>Affiliate URL</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -71,9 +96,26 @@
 
             </tbody>
         </table>
-        <div class="text-center">
-            <button id="nxtPage" type="button" currPage="1" class="btn btn-primary">Load More...</button>
-        </div>
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="#" id="prevPage" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item"><a class="page-link page-number" href="#" data-page="1">1</a></li>
+                <li class="page-item"><a class="page-link page-number" href="#" data-page="2">2</a></li>
+                <li class="page-item"><a class="page-link page-number" href="#" data-page="3">3</a></li>
+
+                <li class="page-item">
+                    <a class="page-link" href="#" id="nxtPage" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
     </div>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"
         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
@@ -89,6 +131,28 @@
 
 
     <script>
+        function loadCategory() {
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/list-all-categories",
+                success: function (response) {
+                    if (response.status == "success") {
+                        var data = response.data;
+                        var catData = '';
+
+                        for (var i = 0; i < data.length; i++) {
+                            // console.log(data[i]);
+                            catData += '<option value="' + data[i].id + '">' + data[i].name + '</option>';
+
+                        }
+                        $('#category').html(catData);
+                    } else {
+                        // console.error(response.message)
+                    }
+
+                }
+            });
+        }
         function loadData() {
             $.ajax({
                 type: "GET",
@@ -100,8 +164,6 @@
                         var counter = 1
                         for (var i = 0; i < data.length; i++) {
                             tabData += '<tr>';
-                            // tabData += '<td>' + data[i].id + '</td>';
-                            // Serial number  (replace data[i].id with counter)
                             tabData += '<td>' + counter + '</td>';
                             tabData += '<td>' + data[i].name + '</td>';
                             if (data[i].image != '') {
@@ -112,18 +174,7 @@
                             }
                             tabData += '<td>' + data[i].description + '</td>';
                             tabData += '<td>' + data[i].created_at + '</td>';
-                            // tabData += '<td>' + data[i].status+ '</td>';
-                            var statusBadge;
-                            if (data[i].status == 1) {
-                                statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
-                            } else if (data[i].status == 0) {
-                                statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
-                            }
-
-                            tabData += '<td>' + statusBadge + '</td>';
-
                             tabData += '<td>' + data[i].category + '</td>';
-                            tabData += '<td>' + data[i].affiliate_url + '</td>';
                             tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
                             tabData += '</tr>';
                             counter++;
@@ -139,60 +190,122 @@
             });
         }
         $(document).ready(function () {
-            // new DataTable('#dataTable');
             loadData();
-            $(document).on('click', '#nxtPage', function () {
-                $('#tabData').html('');
-                var pageNo = $(this).attr('currPage');
-                pageNo = parseInt(pageNo) + 1;
-                console.log(pageNo);
+            var currentPage = 1;
+
+            loadData(currentPage);
+            $(document).on('click', '.page-number', function () {
+                var page = $(this).data('page');
+                loadData(page);
+            });
+            function loadData(page) {
                 $.ajax({
                     type: "GET",
                     url: "https://sandbox.pranavdev.space/gadgets/api/products/",
-                    data: { page: pageNo },
+                    data: { page: page },
                     success: function (response) {
-                        $('#nxtPage').attr('currPage', pageNo);
-
                         if (response.status == "success") {
                             var data = response.data;
+                            var tabData = '';
+
+                            // Loop through data and populate the table
                             for (var i = 0; i < data.length; i++) {
                                 tabData += '<tr>';
                                 tabData += '<td>' + data[i].id + '</td>';
                                 tabData += '<td>' + data[i].name + '</td>';
                                 if (data[i].image != '') {
                                     tabData += '<td><img src="' + data[i].image + '" height="200px" width="200px"></td>';
-                                }
-                                else {
+                                } else {
                                     tabData += '<td>No Image Found</td>';
                                 }
                                 tabData += '<td>' + data[i].description + '</td>';
                                 tabData += '<td>' + data[i].created_at + '</td>';
-                                var statusBadge;
-                                if (data[i].status == 1) {
-                                    statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
-                                } else if (data[i].status == 0) {
-                                    statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
-                                }
-
-                                tabData += '<td>' + statusBadge + '</td>';
                                 tabData += '<td>' + data[i].category + '</td>';
-                                tabData += '<td>' + data[i].affiliate_url + '</td>';
                                 tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
                                 tabData += '</tr>';
                             }
-
                             $('#tabData').html(tabData);
-
                             var pagination = response.pagination;
-                            if (pagination.total_pages == pageNo) {
-                                console.log(pagination.total_pages)
-                                showNotification("No Product Found", "error")
-                                $('#nxtPage').hide();
+
+                            // Enable/Disable pagination buttons based on page number and total pages
+                            if (currentPage == 1) {
+                                $('#prevPage').attr('disabled', true);
+                            } else {
+                                $('#prevPage').attr('disabled', false);
                             }
+
+                            if (currentPage >= pagination.total_pages) {
+                                $('#nxtPage').attr('disabled', true);
+                            } else {
+                                $('#nxtPage').attr('disabled', false);
+                            }
+                        } 
+                    },
+                    error: function () {
+                        showNotification("An error occurred while fetching data", "error");
+                    }
+                });
+                $(document).on('click', '#nxtPage', function () {
+                    currentPage++;
+                    loadData(currentPage);
+                });
+                $(document).on('click', '#prevPage', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadData(currentPage);
+                    }
+                });
+            }
+
+
+        });
+
+        $(document).ready(function () {
+            loadData();
+            loadCategory();
+            $(document).on('click', '#addProductBtn', function () {
+                var productName = $('#productName').val();
+                var productImage = $('#productImg')[0].files[0];
+                var productDescription = $('#productDescription').val();
+                var productCategory = $('#category').val();
+
+                var formData = new FormData();
+                formData.append('name', productName);
+                formData.append('image', productImage);
+                formData.append('description', productDescription);
+                formData.append('category', productCategory);
+
+                $.ajax({
+                    type: "POST",
+                    url: "https://sandbox.pranavdev.space/gadgets/api/add-product",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        if (response.status == "success" && response.data && response.data.product) {
+                            var newProduct = response.data.product;
+                            // console.log(newProduct.id)
+
+                            var newRow = '<tr>';
+                            newRow += '<td>' + newProduct.id + '</td>';
+                            newRow += '<td>' + newProduct.name + '</td>';
+                            newRow += '<td><img src="' + newProduct.image + '" height="50" alt="Product Image"></td>';
+                            newRow += '<td>' + newProduct.description + '</td>';
+                            newRow += '<td>' + newProduct.created_at + '</td>';
+                            // newRow += '<td>' + newProduct.category + '</td>';                             
+                            newRow += '</tr>';
+                            $('#tabData').append(newRow);
+                            $('#productName').val('');
+                            $('#productImg').val('');
+                            $('#productDescription').val('');
+                            $('#myModal').modal('hide');
+                            showNotification('Product added successfully', 'success');
                         } else {
-                            // $('#tabData').html(response.message);
-                            showNotification(response.message, "error")
+                            showNotification(response.message, 'error');
                         }
+                    },
+                    error: function () {
+                        showNotification('An error occurred', 'error');
                     }
                 });
             });
@@ -222,12 +335,6 @@
                     var editedCategory = $('#inputCategory').val();
                     var editedAffiliate = $('#inputAffiliate').val();
                     var formData = new FormData($('#myModalEdit')[0]);
-
-                    // formData.append('product_id', procuctId);
-                    // formData.set('name', editedProductName);
-                    // formData.set('description', editedDescription);
-                    // formData.set('category', editedCategory);
-                    // formData.set('affiliate_url', editedAffiliate);
 
                     formData.append('product_id', procuctId);
                     formData.append('name', editedProductName);
@@ -285,44 +392,23 @@
                     }
                 });
             });
-
-            // $(document).on('click', '.delete-btn', function () {
-            //     var productId = $(this).data('id');
-
-            //     $.ajax({
-            //         type: "POST",
-            //         url: "https://sandbox.pranavdev.space/gadgets/api/delete-product",
-            //         data: { product_id: productId },
-            //         success: function (response) {
-            //             if (response.status == "success") {
-            //                 loadData();
-            //                 showNotification("Product Deleted", "error")
-
-            //             } else {
-            //                 // console.log(response.message);
-            //                 showNotification(response.message, "error")
-            //             }
-            //         }
-            //     });
-            // });
-
         });      
     </script>
-        <script>
-            tinymce.init({
-                selector: '#inputDescription',
-                height: 300, 
-                plugins: [
-                    'advlist autolink lists link image charmap print preview anchor',
-                    'searchreplace visualblocks code fullscreen',
-                    'insertdatetime media table paste code help wordcount'
-                ],
-                toolbar: 'undo redo | formatselect | bold italic backcolor | \
+    <script>
+        tinymce.init({
+            selector: '#inputDescription',
+            height: 300,
+            plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table paste code help wordcount'
+            ],
+            toolbar: 'undo redo | formatselect | bold italic backcolor | \
                           alignleft aligncenter alignright alignjustify | \
                           bullist numlist outdent indent | removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-            });
-        </script>
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+        });
+    </script>
 
     <script>
         const notyf = new Notyf({

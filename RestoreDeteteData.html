@@ -21,6 +21,7 @@
                     <th>Description</th>
                     <th>Deleted Date</th>
                     <th>Days Left</th>
+                    <th>Restore</th>
                     <!-- <th>Actions</th> -->
                 </tr>
             </thead>
@@ -54,19 +55,34 @@
                             tabData += '<td>' + data[i].description + '</td>';
                             tabData += '<td>' + data[i].deleted_at + '</td>';
                             tabData += '<td>' + data[i].days_left + '</td>';
-                            // tabData += '<td><button class="btn btn-sm btn-primary edit-btn" data-id="' + data[i].id + '">Edit</button> <button class="btn btn-sm btn-danger delete-btn" data-id="' + data[i].id + '">Delete</button></td>';
+                            tabData += '<td><button class="btn btn-sm btn-success restore-btn" data-id="' + data[i].id + '">Restore</button></td>';
                             tabData += '</tr>';
                         }
+                        
                         $('#tabData').html(tabData);
             
                         var pagination = response.pagination;
-                        console.log(pagination);
-                        console.log(pagination.total_pages);
-                        console.log(pagination.current_page);
                     }
                 }
             });
         }
+        $(document).on('click', '.restore-btn', function () {
+            var productId = $(this).data('id');
+            $.ajax({
+                type: "POST",
+                url: "https://sandbox.pranavdev.space/gadgets/api/revoke-deleted-product",
+                data: { product_id: productId },
+                success: function (response) {
+                    if (response.status == "success") {
+                        loadData(); // Reload the table data after restoration
+                        // showNotification('Product Restored', 'success');
+                    } else {
+                        console.log(response.message);
+                    }
+                }
+            });
+        });
+        
 
         $(document).ready(function () {
             loadData();
