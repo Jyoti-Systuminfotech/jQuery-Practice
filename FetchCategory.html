@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Day 04</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <div>
+            <h3>Data from API</h3>
+        </div>
+        <hr>
+        <nav aria-label="Page navigation example">
+            <ul id="nav" class="nav justify-content-center navlink">
+                <li class="page-item ">
+                </li>
+                <li class="page-item">
+                </li>
+            </ul>
+        </nav>
+        <div class="container">
+            <div id="imageContainer" class="row"></div>
+            <div class="text-center">
+                <button id="nxtPage" type="button" data-loading-text="Loading..." currPage="1" class="btn mb-3">LOAD
+                    MORE</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script>
+        var displayedImages = [];
+        function loadCategory() {
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/list-all-categories",
+                success: function (response) {
+                    if (response.status == "success") {
+                        var data = response.data;
+                        var catData = '';
+                        for (var i = 0; i < data.length; i++) {
+                            catData += '<button class="btn btn-sm btn-primary m-3 btnCat" data-category="' + data[i].id + '">' + data[i].name + '</button>';
+                            // catData += '<button class="btn btn-sm btn-primary m-3 btnCat' + i + '" data-category="' + data[i].id + '">' + data[i].name + '</button>';
+                        }
+                        $('#nav').html(catData);
+                        $('.btnCat').click(function () {
+                            var categoryId = $(this).data('category');
+                            filterImages(categoryId);
+                        });
+                    } else {
+                        console.log(response.data);
+                    }
+                }
+            });
+        }
+
+        function filterImages(categoryId) { 
+            // displayedImages = [];           
+            $('#imageContainer').empty();
+            loadData(1, categoryId);
+        }
+
+        function toggleLoadingButton(isLoading) {
+            var $button = $('#nxtPage');
+            $button.prop('disabled', isLoading);
+            if (isLoading) {
+                $button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+            } else {
+                $button.html('LOAD MORE');
+            }
+        }
+
+        function simulateLoading(pageNo) {
+            toggleLoadingButton(true);
+            setTimeout(function () {
+                toggleLoadingButton(false);
+                loadData(pageNo);
+            }, 3000);
+        }
+
+        loadCategory();
+        function loadData(pageNo, categoryId) {
+            // console.log(categoryId)
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/products/",
+                data: { page: pageNo, category: categoryId },
+                success: function (response) {
+                    if (response.status == "success") {
+                        var data = response.data;
+                        var tabData = '';
+
+                        for (var i = 0; i < data.length; i++) {
+                            if (!displayedImages.includes(data[i].image)) {
+                                displayedImages.push(data[i].image);
+                                var imageDiv = '<div class="col-md-3 mb-3">';
+                                if (data[i].image != '') {
+                                    imageDiv += '<a' + data[i].image + '">';
+                                    imageDiv += '<img src="' + data[i].image + '" class="img-fluid" alt="Image">';
+                                    imageDiv += '</a>';
+                                } else {
+                                    imageDiv += '<p>No Image Found</p>';
+                                }
+                                imageDiv += '<p style="color:grey;">' + data[i].description + '</p>';
+                                imageDiv += '</div>';
+                                tabData += imageDiv;
+                            }
+                        }
+                        $('#imageContainer').append(tabData);
+                        var pagination = response.pagination;
+                        if (pagination.total_pages === pageNo) {
+                            $('#nxtPage').hide();
+                        }
+                        $('#nxtPage').attr('currPage', pagination.next_page);
+
+                    } else {
+                        $('#imageContainer').html(response.message);
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            loadCategory();
+            loadData(1, null);
+            $(document).on('click', '.btnCat', function () {
+                var categoryId = $(this).data('category');
+                filterImages(categoryId);
+                console.log(filterImages(categoryId))
+            });
+            $(document).on('click', '#nxtPage', function () {
+                var pageNo = $(this).attr('currPage');
+                pageNo = parseInt(pageNo) + 1;
+                var activeCategory = $('.btnCat.active');
+                var categoryId = activeCategory.length ? activeCategory.data('category') : null;
+                simulateLoading(pageNo);
+                loadData(pageNo, categoryId);
+            });
+        });
+    </script>
+</body>
+
+</html>

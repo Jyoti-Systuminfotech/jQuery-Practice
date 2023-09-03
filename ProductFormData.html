@@ -32,8 +32,9 @@
                         <p><b>Name</b></p>
                         <input type="text" class="form-control" id="inputName" placeholder="Enter Product Name"><br />
                         <p><b>Description</b></p>
-                        <textarea class="form-control" id="inputDescription" placeholder="Enter Description"></textarea><br />
-                        
+                        <textarea class="form-control" id="inputDescription"
+                            placeholder="Enter Description"></textarea><br />
+
                         <!-- <p><b>Description</b></p>
                         <input type="text" class="form-control" id="inputDescription"
                             placeholder="Enter Description Name"><br /> -->
@@ -89,6 +90,19 @@
 
 
     <script>
+        function toggleStatus(statusBadge) {
+            var currentStatus = $(statusBadge).attr('data-status');
+            var newStatus = currentStatus === '1' ? '0' : '1';
+            $(statusBadge).attr('data-status', newStatus);
+            $(statusBadge).toggleClass('bg-success bg-danger');
+
+            var iconClass = newStatus === '1' ? 'bi-eye-fill' : 'bi-eye-slash-fill';
+            $(statusBadge).find('.bi').removeClass().addClass('bi ' + iconClass);
+
+            var message = newStatus === '1' ? 'Status changed to Active' : 'Status changed to Inactive';
+            showNotification(message, 'success');
+        }
+
         function loadData() {
             $.ajax({
                 type: "GET",
@@ -115,11 +129,10 @@
                             // tabData += '<td>' + data[i].status+ '</td>';
                             var statusBadge;
                             if (data[i].status == 1) {
-                                statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
+                                statusBadge = '<span class="badge bg-success status-badge" data-status="1" onclick="toggleStatus(this)"><span class="bi bi-eye-fill"></span></span>';
                             } else if (data[i].status == 0) {
-                                statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
+                                statusBadge = '<span class="badge bg-danger status-badge" data-status="0" onclick="toggleStatus(this)"><span class="bi bi-eye-fill"></span></span>';
                             }
-
                             tabData += '<td>' + statusBadge + '</td>';
 
                             tabData += '<td>' + data[i].category + '</td>';
@@ -169,11 +182,10 @@
                                 tabData += '<td>' + data[i].created_at + '</td>';
                                 var statusBadge;
                                 if (data[i].status == 1) {
-                                    statusBadge = '<span class="badge bg-success"><span class="bi bi-eye-fill"></span></span>';
+                                    statusBadge = '<span class="badge bg-success status-badge" data-status="1" onclick="toggleStatus(this)"><span class="bi bi-eye-fill"></span></span>';
                                 } else if (data[i].status == 0) {
-                                    statusBadge = '<span class="badge bg-danger"><span class="bi bi-eye-fill"></span></span>';
+                                    statusBadge = '<span class="badge bg-danger status-badge" data-status="0" onclick="toggleStatus(this)"><span class="bi bi-eye-fill"></span></span>';
                                 }
-
                                 tabData += '<td>' + statusBadge + '</td>';
                                 tabData += '<td>' + data[i].category + '</td>';
                                 tabData += '<td>' + data[i].affiliate_url + '</td>';
@@ -308,21 +320,21 @@
 
         });      
     </script>
-        <script>
-            tinymce.init({
-                selector: '#inputDescription',
-                height: 300, 
-                plugins: [
-                    'advlist autolink lists link image charmap print preview anchor',
-                    'searchreplace visualblocks code fullscreen',
-                    'insertdatetime media table paste code help wordcount'
-                ],
-                toolbar: 'undo redo | formatselect | bold italic backcolor | \
+    <script>
+        tinymce.init({
+            selector: '#inputDescription',
+            height: 300,
+            plugins: [
+                'advlist autolink lists link image charmap print preview anchor',
+                'searchreplace visualblocks code fullscreen',
+                'insertdatetime media table paste code help wordcount'
+            ],
+            toolbar: 'undo redo | formatselect | bold italic backcolor | \
                           alignleft aligncenter alignright alignjustify | \
                           bullist numlist outdent indent | removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-            });
-        </script>
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+        });
+    </script>
 
     <script>
         const notyf = new Notyf({

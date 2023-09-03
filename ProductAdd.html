@@ -208,7 +208,6 @@
                             var data = response.data;
                             var tabData = '';
 
-                            // Loop through data and populate the table
                             for (var i = 0; i < data.length; i++) {
                                 tabData += '<tr>';
                                 tabData += '<td>' + data[i].id + '</td>';
@@ -226,39 +225,36 @@
                             }
                             $('#tabData').html(tabData);
                             var pagination = response.pagination;
-
-                            // Enable/Disable pagination buttons based on page number and total pages
-                            if (currentPage == 1) {
-                                $('#prevPage').attr('disabled', true);
-                            } else {
-                                $('#prevPage').attr('disabled', false);
-                            }
-
-                            if (currentPage >= pagination.total_pages) {
-                                $('#nxtPage').attr('disabled', true);
-                            } else {
-                                $('#nxtPage').attr('disabled', false);
-                            }
-                        } 
+                            $('#prevPage').prop('disabled', page <= 1);
+                            $('#nxtPage').prop('disabled', page >= pagination.total_pages);
+                            currentPage = page;
+                        }
                     },
                     error: function () {
                         showNotification("An error occurred while fetching data", "error");
                     }
                 });
-                $(document).on('click', '#nxtPage', function () {
-                    currentPage++;
-                    loadData(currentPage);
-                });
-                $(document).on('click', '#prevPage', function () {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        loadData(currentPage);
-                    }
-                });
             }
+            loadData(currentPage);
+
+            $(document).on('click', '.page-number', function () {
+                var page = $(this).data('page');
+                loadData(page);
+            });
+
+            $('#nxtPage').click(function () {
+                loadData(currentPage + 1);
+            });
+
+            $('#prevPage').click(function () {
+                if (currentPage > 1) {
+                    loadData(currentPage - 1);
+                }
+            });
 
 
         });
+
 
         $(document).ready(function () {
             loadData();
