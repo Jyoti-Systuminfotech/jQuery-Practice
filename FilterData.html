@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Filtering by Category</title>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <style>
+        /* Add some basic styling */
+        .product {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <!-- Inside the <style> tag in the <head> section of your HTML -->
+<style>
+    /* Add some basic styling */
+    .product {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px;
+    }
+    .hidden {
+        display: none;
+    }
+    .product img {
+        max-width: 100px; /* Set the maximum width for the images */
+        max-height: 100px; /* Set the maximum height for the images */
+    }
+</style>
+
+</head>
+<body>
+    <h1>Product Filtering by Category</h1>
+    <div id="category-buttons">
+        <!-- Category buttons will be populated here -->
+    </div>
+    <div id="product-list">
+        <!-- Product list will be populated here -->
+    </div>
+    <div class="container">
+        <div id="imageContainer" class="row"></div>
+        <div class="text-center">
+            <button id="nxtPage" type="button" data-loading-text="Loading..." currPage="1" class="btn mb-3">LOAD
+                MORE</button>
+        </div>
+    </div>
+
+    <script>
+         var currentPage = 1;
+
+// Function to load more products
+function loadMoreProducts() {
+    currentPage++;
+    $.ajax({
+        type: "GET",
+        url: "https://sandbox.pranavdev.space/gadgets/api/products/",
+        data: { page: currentPage },
+        success: function (response) {
+            if (response.status === "success") {
+                var products = response.data;
+                var productHtml = '';
+                products.forEach(function (product) {
+                    productHtml += '<div class="product" data-category="' + product.category + '">';
+                    productHtml += '<img src="' + product.image + '" alt="Product Image">';
+                    productHtml += '<p>' + product.description + '</p>';
+                    productHtml += '</div>';
+                });
+                $('#product-list').append(productHtml);
+                        $('[data-fancybox="gallery"]').fancybox({
+                            thumbs: {
+                                autoStart: true,
+                                axis: 'x'
+                            }
+                        });
+                    } else {
+                        console.log(response.message);
+                    }
+                },
+                error: function () {
+                    console.log('Error fetching products from the API.');
+                }
+            });
+        }
+        function initialize() {
+            fetchCategories();
+            loadMoreProducts();
+
+            $('#nxtPage').click(function () {
+                loadMoreProducts();
+            });
+        }
+
+        // Function to filter products by category ID
+        function filterProducts(categoryId) {
+            if (categoryId === '0') {
+                $('.product').removeClass('hidden');
+            } else {
+                console.log(categoryId)
+                $('.product').addClass('hidden');
+                $('.product[data-category="' + categoryId + '"]').removeClass('hidden');
+            }
+        }
+
+        // Function to fetch categories from the API
+        function fetchCategories() {
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/list-all-categories",
+                success: function (response) {
+                    if (response.status === "success") {
+                        var categories = response.data;
+
+                        // Create filter buttons dynamically
+                        var categoryButtons = '<button class="filter-button" data-category="0">All</button>';
+                        categories.forEach(function (category) {
+                            categoryButtons += '<button class="filter-button" data-category="' + category.id + '">' + category.name + '</button>';
+                        });
+
+                        // Append buttons to the category-buttons div
+                        $('#category-buttons').html(categoryButtons);
+
+                        // Initialize filtering with '0' category (All)
+                        filterProducts('0');
+
+                        // Handle filter button clicks
+                        $('.filter-button').click(function () {
+                            var categoryId = $(this).data('category');
+                            filterProducts(categoryId.toString()); // Convert to string for comparison
+                        });
+                    } else {
+                        console.log(response.message);
+                    }
+                },
+                error: function () {
+                    console.log('Error fetching categories from the API.');
+                }
+            });
+        }
+
+        // Function to fetch and display product data
+        function fetchProducts() {
+            $.ajax({
+                type: "GET",
+                url: "https://sandbox.pranavdev.space/gadgets/api/products/",
+                success: function (response) {
+                    if (response.status === "success") {
+                        var products = response.data;
+
+                        // Create product HTML dynamically
+                        var productHtml = '';
+                        products.forEach(function (product) {
+                            productHtml += '<div class="product" data-category="' + product.category + '">';
+                            productHtml += '<img src="' + product.image + '" alt="Product Image">';
+                            productHtml += '<p>' + product.description + '</p>';
+                            productHtml += '</div>';
+                        });
+
+                        // Append product HTML to the product-list div
+                        $('#product-list').html(productHtml);
+                    } else {
+                        console.log(response.message);
+                    }
+                },
+                error: function () {
+                    console.log('Error fetching products from the API.');
+                }
+            });
+        }
+        initialize();
+
+        // Fetch categories and products, and initialize filtering
+        fetchCategories();
+        fetchProducts();
+    </script>
+</body>
+</html>
